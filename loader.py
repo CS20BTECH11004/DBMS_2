@@ -71,6 +71,5 @@ def create_tables():
     cursor.close()
     db_connection.close()
 
-
 create_db()  
 create_tables()
