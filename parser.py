@@ -1,5 +1,3 @@
-from numpy import number
-
 file = open("source.txt","r",encoding="utf8")
 paper_count = int(file.readline())
 
@@ -34,6 +32,3 @@ def get_paper_info():
         file_inp = file.readline().strip()
 
     return (title,author,year,venue,paper_id,references,abstract)
-
-while paper_count>0:
-    get_paper_info()
