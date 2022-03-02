@@ -80,22 +80,7 @@ def get_parsed_data():
     global file_info
     print("reading from file")
     file_info = parser.get_paper_info()
-def input_into_db():
-    global file_info
-    db_connection = psycopg2.connect(
-        database=db_name,
-        user=user,
-        password=password,
-        host='localhost',
-        port= '5432')
-    #db_connection.set_client_encoding('UTF-8')
-    
-    #db_connection.autocommit = true #too damn slow
-    cursor = db_connection.cursor()
-    cursor.execute("SET CLIENT_ENCODING TO 'UTF-8';")
-    db_connection.commit()
-    #cursor.fast_executemany =true
-    
+def get_research_paper_inp():
     #entering into research_paper
     resch_paper_sql = """
     INSERT INTO research_paper(
@@ -109,8 +94,9 @@ def input_into_db():
     resch_paper_values = []
     for x in file_info:
         resch_paper_values.append((x[4],x[0],x[6],x[3],str(x[2])))
-    cursor.executemany(resch_paper_sql,resch_paper_values)
     
+    return resch_paper_sql, resch_paper_values
+def get_reference_table_inp():
     #entering into reftable
     ref_table_sql = """
     INSERT INTO reference_table(paper_id, paper_referenced) 
@@ -119,9 +105,8 @@ def input_into_db():
     for x in file_info:
         for y in x[5]:
             ref_table_vals.append((x[4],y))
-
-
-    cursor.executemany(ref_table_sql,ref_table_vals)
+    return ref_table_sql,ref_table_vals
+def get_autho_info_vals():
     #entering into author_info
     auth_info_sql = """
     INSERT INTO author_info(
@@ -141,8 +126,8 @@ def input_into_db():
                 middlename = x[1][i].split(' ')[1]
             auth_info_values.append((ttt,fname,middlename,lastname))
             ttt+=1
-    cursor.executemany(auth_info_sql,auth_info_values)
-
+    return auth_info_sql,auth_info_values
+def get_auth_group_info(auth_info_values):
     #entering into author_group
     auth_grp_sql = """
     INSERT INTO author_group(paper_id, author_id, author_rank) 
@@ -160,14 +145,32 @@ def input_into_db():
                 if t[1]==fname and t[2]==middlename and t[3]==lastname:
                     auth_id = t[0]
             auth_grp_vals.append((x[4],str(auth_id),str(i+1)))
-    cursor.executemany(auth_grp_sql,auth_grp_vals)
 
-    db_connection.commit()
-    # try:
-        
-    # except:
-    #     print("error occured.")
-    #     db_connection.rollback()
+    return auth_grp_sql,auth_grp_vals
+def input_into_db():
+    global file_info
+    db_connection = psycopg2.connect(database=db_name,user=user,password=password,host='localhost',port= '5432')
+    db_connection.set_client_encoding('UTF-8')
+    
+    #db_connection.autocommit = true #too damn slow
+    cursor = db_connection.cursor()
+    cursor.execute("SET CLIENT_ENCODING TO 'UTF-8';")
+    #cursor.fast_executemany =true
+    
+    resch_paper_sql, resch_paper_values = get_research_paper_inp()
+    ref_table_sql,ref_table_vals=get_reference_table_inp()
+    auth_info_sql,auth_info_values = get_autho_info_vals()
+    auth_grp_sql,auth_grp_vals =get_auth_group_info(auth_info_values)
+    
+    try:
+        cursor.executemany(resch_paper_sql,resch_paper_values)
+        cursor.executemany(ref_table_sql,ref_table_vals)
+        cursor.executemany(auth_info_sql,auth_info_values)
+        cursor.executemany(auth_grp_sql,auth_grp_vals)
+        db_connection.commit()    
+    except:
+        print("error occured.")
+        db_connection.rollback()
     db_connection.close()
 def load():
     print("inserting into db")

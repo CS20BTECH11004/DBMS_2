@@ -7,7 +7,7 @@ paper_count = int(file.readline())
 def get_paper_info():
     global file 
     file_info =[]
-    for i in range(paper_count):
+    for i in range(6300):
         title = ""
         author= []
         year = ""
