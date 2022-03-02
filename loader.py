@@ -1,14 +1,36 @@
-from multiprocessing.dummy import connection
 import psycopg2
 from sympy import true
 import parser
 import time
-#import pyodbc
+#import pyodbc #please uncomment id available
+
+def unique(info_list):
+    titles = set()
+    new = []
+    for i in reversed(info_list):
+        if i[0] in titles:
+            pass
+        else:
+            titles.add(i[0])
+            new.append(i)
+    
+    return new
+
 
 user = "postgres"
 password = "postgres"
 db_name = "newer_db"
 file_info = []
+def sanitise_inp():
+    temp = set()
+    global file_info
+    file_info = unique(file_info)
+    file_info = filter(lambda d: len(d[1])>0, file_info)
+    file_info = filter(lambda d: int(d[2])>0, file_info)
+
+    #remove entries with no author
+    #valid year needed
+    #author list cant have copies
 def create_db():
     global user
     global password
@@ -40,7 +62,7 @@ def create_tables():
         """
         CREATE TABLE research_paper(
             paper_id VARCHAR(10) UNIQUE NOT NULL,
-            paper_title VARCHAR(500) NOT NULL,
+            paper_title VARCHAR(500) UNIQUE NOT NULL,
             abstract TEXT NOT NULL,
             venue VARCHAR(500) NOT NULL,
             year VARCHAR(100) NOT NULL,
@@ -104,7 +126,8 @@ def get_reference_table_inp():
     ref_table_vals = []
     for x in file_info:
         for y in x[5]:
-            ref_table_vals.append((x[4],y))
+            if(x[4]!=y):
+                ref_table_vals.append((x[4],y))
     return ref_table_sql,ref_table_vals
 def get_autho_info_vals():
     #entering into author_info
@@ -155,22 +178,23 @@ def input_into_db():
     #db_connection.autocommit = true #too damn slow
     cursor = db_connection.cursor()
     cursor.execute("SET CLIENT_ENCODING TO 'UTF-8';")
-    #cursor.fast_executemany =true
-    
+    #cursor.fast_executemany =true #uncomment if pyodbc is avavilable 
+    sanitise_inp()
+
     resch_paper_sql, resch_paper_values = get_research_paper_inp()
     ref_table_sql,ref_table_vals=get_reference_table_inp()
     auth_info_sql,auth_info_values = get_autho_info_vals()
     auth_grp_sql,auth_grp_vals =get_auth_group_info(auth_info_values)
     
-    try:
-        cursor.executemany(resch_paper_sql,resch_paper_values)
-        cursor.executemany(ref_table_sql,ref_table_vals)
-        cursor.executemany(auth_info_sql,auth_info_values)
-        cursor.executemany(auth_grp_sql,auth_grp_vals)
-        db_connection.commit()    
-    except:
-        print("error occured.")
-        db_connection.rollback()
+    #try:
+    cursor.executemany(resch_paper_sql,resch_paper_values)
+    cursor.executemany(ref_table_sql,ref_table_vals)
+    cursor.executemany(auth_info_sql,auth_info_values)
+    cursor.executemany(auth_grp_sql,auth_grp_vals)
+    db_connection.commit()    
+    #except:
+    #    print("error occured.")
+    #    db_connection.rollback()
     db_connection.close()
 def load():
     print("inserting into db")

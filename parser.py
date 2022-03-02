@@ -7,7 +7,7 @@ paper_count = int(file.readline())
 def get_paper_info():
     global file 
     file_info =[]
-    for i in range(paper_count):
+    for i in range(1000):
         title = ""
         author= []
         year = ""
@@ -37,8 +37,6 @@ def get_paper_info():
         
         if title == "":
             title = "UNAVAILABLE"
-        if author == "":
-            author = "UNAVAILABLE"
         if year == "":
             year = "UNAVAILABLE"
         if venue == "":
