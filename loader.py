@@ -82,13 +82,15 @@ def sanitise_inp():
             if_valid =false
         #checking if authors is not repeated
         if if_valid:
-            temp = dict()
-            for cur_author in author:
-                if(temp.get(cur_author,true)):
-                    temp[cur_author]=1
-                else:
-                    if_valid = false
-                    break
+            if( len(author)!=len(set(author))  ):
+                if_valid=false
+            # temp = dict()
+            # for cur_author in author:
+            #     if(temp.get(cur_author,true)):
+            #         temp[cur_author]=1
+            #     else:
+            #         if_valid = false
+            #         break
         
         if(if_valid):
             temp_file_info.append(x)
@@ -161,7 +163,7 @@ def create_tables():
             paper_id VARCHAR(10) NOT NULL references research_paper(paper_id),
             author_id VARCHAR(10) NOT NULL references author_info(author_id),
             author_rank INT NOT NULL,
-            PRIMARY KEY(paper_id, author_id, author_rank)
+            PRIMARY KEY(paper_id, author_id)
         )
         """
     ]
@@ -285,7 +287,12 @@ def input_into_db():
                 continue
 
         cursor.executemany(auth_info_sql,auth_info_values)
-        cursor.executemany(auth_grp_sql,auth_grp_vals)
+        #cursor.executemany(auth_grp_sql,auth_grp_vals)
+        for val in auth_grp_vals:
+            try:
+                cursor.execute(auth_grp_sql,(val,))
+            except:
+                continue
         db_connection.commit()    
     except:
        print("error occured.")
