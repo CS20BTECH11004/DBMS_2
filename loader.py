@@ -93,22 +93,15 @@ def sanitise_inp():
         if(if_valid):
             temp_file_info.append(x)
     file_info=temp_file_info
-    
-    #removing ivalid references
-    ref_fixed_info = []
 
-    deleted_count = 1
-    while(deleted_count!=0):
-        deleted_count=0
-        for x in file_info:
-            (title,author,year,venue,paper_id,references,abstract) = x
-        
+    # #removing ivalid references
+    # ref_fixed_info = []
 
-
-
-    #remove entries with no author
-    #valid year needed
-    #author list cant have copies
+    # deleted_count = 1
+    # while(deleted_count!=0):
+    #     deleted_count=0
+    #     for x in file_info:
+    #         (title,author,year,venue,paper_id,references,abstract) = x
 def create_db():
     global user
     global password
@@ -151,17 +144,9 @@ def create_tables():
         """
         CREATE TABLE reference_table(
             paper_id VARCHAR(10) NOT NULL references research_paper(paper_id),
-            paper_referenced VARCHAR(10) NOT NULL CHECK(paper_referenced != paper_id),
+            paper_referenced VARCHAR(10) NOT NULL CHECK(paper_referenced != paper_id) references research_paper(paper_id),
             PRIMARY KEY(paper_id, paper_referenced)
         );
-        """,
-        """
-        CREATE TABLE author_group(
-            paper_id VARCHAR(10) NOT NULL references research_paper(paper_id),
-            author_id VARCHAR(10) NOT NULL,
-            author_rank INT NOT NULL,
-            PRIMARY KEY(paper_id, author_id)
-        )
         """,
         """
         CREATE TABLE author_info(
@@ -169,6 +154,14 @@ def create_tables():
             first_name VARCHAR(50) NOT NULL,
             middle_name VARCHAR(50),
             last_name VARCHAR(50) NOT NULL 
+        )
+        """,
+        """
+        CREATE TABLE author_group(
+            paper_id VARCHAR(10) NOT NULL references research_paper(paper_id),
+            author_id VARCHAR(10) NOT NULL references author_info(author_id),
+            author_rank INT NOT NULL,
+            PRIMARY KEY(paper_id, author_id, author_rank)
         )
         """
     ]
@@ -247,8 +240,17 @@ def get_auth_group_info(auth_info_values):
                 if t[1]==fname and t[2]==middlename and t[3]==lastname:
                     auth_id = t[0]
             auth_grp_vals.append((x[4],str(auth_id),str(i+1)))
-
+    # temp = set()
+    # new_auth_grp_val= []
+    # for x in auth_grp_vals:
+    #     if x in temp:
+    #         continue
+    #     else:
+    #         temp.add(x)
+    #         new_auth_grp_val.append(x)
+    # auth_grp_vals = new_auth_grp_val
     return auth_grp_sql,auth_grp_vals
+
 def input_into_db():
     global file_info
     db_connection = psycopg2.connect(database=db_name,user=user,password=password,host='localhost',port= '5432')
@@ -269,13 +271,19 @@ def input_into_db():
     
     try:
         cursor.executemany(resch_paper_sql,resch_paper_values)
-        cursor.executemany(ref_table_sql,ref_table_vals)
+        
+        for val in ref_table_vals:
+            try:
+                cursor.execute(ref_table_sql,(val,))
+            except:
+                continue
+
         cursor.executemany(auth_info_sql,auth_info_values)
         cursor.executemany(auth_grp_sql,auth_grp_vals)
         db_connection.commit()    
     except:
-        print("error occured.")
-        db_connection.rollback()
+       print("error occured.")
+       db_connection.rollback()
     cursor.close()
     db_connection.close()
 def load():
