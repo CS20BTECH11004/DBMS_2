@@ -58,7 +58,7 @@ def func():
         is_valid = validity(broken_authors, tup)
         if is_valid:       
             broken_authors.append((fname,middlename,lastname))
-def sanitise_inp():
+def sanitise_inp():``
     func()
     temp = set()
     global file_info
@@ -66,18 +66,30 @@ def sanitise_inp():
     temp_file_info = []
     for x in file_info:
         if_valid =true
-        temp = dict()
-        for author in x[1]:
-            if(temp.get(author,true)):
-                temp[author]=1
-            else:
-                if_valid = false
+
+        #checking if some entry is empty
+        (title,author,year,venue,paper_id,references,abstract) = x
+        for temp in [title,year,venue,abstract]:
+            if temp=="":
+                if_valid=false
                 break
         
-        if(len(x[1])<=0):
+        #if atleast a single author is present
+        if(len(author)<=0):
             if_valid = false
-        if(int(x[2])<=0):
+        #if year is valid
+        if(int(year)<=0):
             if_valid =false
+        #checking if authors is not repeated
+        if if_valid:
+            temp = dict()
+            for cur_author in author:
+                if(temp.get(cur_author,true)):
+                    temp[cur_author]=1
+                else:
+                    if_valid = false
+                    break
+        
         if(if_valid):
             temp_file_info.append(x)
     file_info=temp_file_info
