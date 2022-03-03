@@ -223,6 +223,10 @@ def get_autho_info_vals():
             ttt+=1
     return auth_info_sql,auth_info_values
 def get_auth_group_info(auth_info_values):
+    auth_info_values_set ={}
+    for i in auth_info_values:
+        auth_info_values_set[(i[1],i[2],i[3])]=i[0]
+
     #entering into author_group
     auth_grp_sql = """
     INSERT INTO author_group(paper_id, author_id, author_rank) 
@@ -236,10 +240,11 @@ def get_auth_group_info(auth_info_values):
             if(len(x[1][i].split(' '))>2):
                 middlename = x[1][i].split(' ')[1]
             auth_id =""
-            for t in auth_info_values:
-                if t[1]==fname and t[2]==middlename and t[3]==lastname:
-                    auth_id = t[0]
+            if (fname,middlename,lastname) in auth_info_values_set:
+                auth_id = auth_info_values_set[(fname,middlename,lastname) ]
             auth_grp_vals.append((x[4],str(auth_id),str(i+1)))
+
+    return auth_grp_sql,auth_grp_vals
     # temp = set()
     # new_auth_grp_val= []
     # for x in auth_grp_vals:
@@ -249,7 +254,6 @@ def get_auth_group_info(auth_info_values):
     #         temp.add(x)
     #         new_auth_grp_val.append(x)
     # auth_grp_vals = new_auth_grp_val
-    return auth_grp_sql,auth_grp_vals
 
 def input_into_db():
     global file_info
@@ -269,6 +273,8 @@ def input_into_db():
     auth_info_sql,auth_info_values = get_autho_info_vals()
     auth_grp_sql,auth_grp_vals =get_auth_group_info(auth_info_values)
     
+    print("executing vals now")
+    print(len(resch_paper_values)+len(ref_table_vals)+len(auth_info_values)+len(auth_grp_vals))
     try:
         cursor.executemany(resch_paper_sql,resch_paper_values)
         
