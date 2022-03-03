@@ -1,5 +1,6 @@
+from matplotlib.pyplot import broken_barh
 import psycopg2
-from sympy import true
+from sympy import false, true
 import parser
 import time
 #import pyodbc #please uncomment id available
@@ -21,13 +22,65 @@ user = "postgres"
 password = "postgres"
 db_name = "newer_db"
 file_info = []
+
+def compare(n1, n2):
+    if n1 == n2:
+        return true
+    len1 = len(n1)
+    len2 = len(n2)
+    if len1 == 2 and n1[1]=='.' and n1[0]==n2[0]:
+        return true
+    if len2 == 2 and n2[1]=='.' and n2[0]==n1[0]:
+        return true
+    return false
+
+def validity(auth_list, auth_tuple):
+    fn, mn, ln = auth_tuple
+    for x in auth_list:
+        fn1, mn1, ln1 = x
+        if compare(fn, fn1) and compare(mn, mn1) and compare(ln, ln1):
+            return true
+    return false 
+def func():
+    authors = [] 
+    for x in file_info:
+        for y in x[1]:
+            authors.append(y)
+    
+    broken_authors = []
+    for x in authors:    
+        fname= x.split(' ')[0]
+        lastname = x.split(' ')[-1]
+        middlename = ""
+        if(len(x.split(' '))>2):
+                middlename = x.split(' ')[1]
+        tup = (fname, middlename, lastname)
+        is_valid = validity(broken_authors, tup)
+        if is_valid:       
+            broken_authors.append((fname,middlename,lastname))
 def sanitise_inp():
+    func()
     temp = set()
     global file_info
     file_info = unique(file_info)
-    file_info = filter(lambda d: len(d[1])>0, file_info)
-    file_info = filter(lambda d: int(d[2])>0, file_info)
-
+    temp_file_info = []
+    for x in file_info:
+        if_valid =true
+        temp = dict()
+        for author in x[1]:
+            if(temp.get(author,true)):
+                temp[author]=1
+            else:
+                if_valid = false
+                break
+        
+        if(len(x[1])<=0):
+            if_valid = false
+        if(int(x[2])<=0):
+            if_valid =false
+        if(if_valid):
+            temp_file_info.append(x)
+    file_info=temp_file_info
     #remove entries with no author
     #valid year needed
     #author list cant have copies
@@ -45,6 +98,7 @@ def create_db():
 
     temp_cursor.execute("DROP DATABASE IF EXISTS "+db_name+";")
     temp_cursor.execute("CREATE DATABASE "+db_name+" ENCODING = 'UTF8';")
+    temp_connection.commit()
     temp_cursor.close()
     temp_connection.close()
 def create_tables():
@@ -179,22 +233,25 @@ def input_into_db():
     cursor = db_connection.cursor()
     cursor.execute("SET CLIENT_ENCODING TO 'UTF-8';")
     #cursor.fast_executemany =true #uncomment if pyodbc is avavilable 
+    print(len(file_info))
     sanitise_inp()
+    print(len(file_info))
 
     resch_paper_sql, resch_paper_values = get_research_paper_inp()
     ref_table_sql,ref_table_vals=get_reference_table_inp()
     auth_info_sql,auth_info_values = get_autho_info_vals()
     auth_grp_sql,auth_grp_vals =get_auth_group_info(auth_info_values)
     
-    #try:
-    cursor.executemany(resch_paper_sql,resch_paper_values)
-    cursor.executemany(ref_table_sql,ref_table_vals)
-    cursor.executemany(auth_info_sql,auth_info_values)
-    cursor.executemany(auth_grp_sql,auth_grp_vals)
-    db_connection.commit()    
-    #except:
-    #    print("error occured.")
-    #    db_connection.rollback()
+    try:
+        cursor.executemany(resch_paper_sql,resch_paper_values)
+        cursor.executemany(ref_table_sql,ref_table_vals)
+        cursor.executemany(auth_info_sql,auth_info_values)
+        cursor.executemany(auth_grp_sql,auth_grp_vals)
+        db_connection.commit()    
+    except:
+        print("error occured.")
+        db_connection.rollback()
+    cursor.close()
     db_connection.close()
 def load():
     print("inserting into db")
