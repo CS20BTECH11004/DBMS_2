@@ -7,7 +7,7 @@ paper_count = int(file.readline())
 def get_paper_info():
     global file 
     file_info =[]
-    for i in range(6000):
+    for i in range(60000):
         title = ""
         author= []
         year = ""
@@ -34,15 +34,6 @@ def get_paper_info():
                 abstract = file_inp[2:].replace("'","''")
             
             file_inp = file.readline().strip()
-        
-        if title == "":
-            title = "UNAVAILABLE"
-        if year == "":
-            year = "UNAVAILABLE"
-        if venue == "":
-            venue = "UNAVAILABLE"
-        if abstract == "":
-            abstract = "UNAVAILABLE"
         
         file_info.append((title,author,year,venue,paper_id,references,abstract))
     

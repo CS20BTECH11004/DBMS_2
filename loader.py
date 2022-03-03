@@ -58,7 +58,7 @@ def func():
         is_valid = validity(broken_authors, tup)
         if is_valid:       
             broken_authors.append((fname,middlename,lastname))
-def sanitise_inp():``
+def sanitise_inp():
     func()
     temp = set()
     global file_info
@@ -93,6 +93,19 @@ def sanitise_inp():``
         if(if_valid):
             temp_file_info.append(x)
     file_info=temp_file_info
+    
+    #removing ivalid references
+    ref_fixed_info = []
+
+    deleted_count = 1
+    while(deleted_count!=0):
+        deleted_count=0
+        for x in file_info:
+            (title,author,year,venue,paper_id,references,abstract) = x
+        
+
+
+
     #remove entries with no author
     #valid year needed
     #author list cant have copies
