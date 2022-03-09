@@ -1,4 +1,3 @@
-from matplotlib.pyplot import broken_barh
 import psycopg2
 from sympy import false, true
 import parser
