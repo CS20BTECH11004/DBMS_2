@@ -41,16 +41,12 @@ def get_paper_info():
         #         x='NULL'
         if title == "":
             title = 'NULL'
-        if author == []:
-            author = 'NULL'
         if year == "":
             year = 'NULL'
         if venue == "":
             venue ='NULL'
         if paper_id == "":
             paper_id = 'NULL'
-        if references == []:
-            references = 'NULL'
         if abstract == "":
             abstract = 'NULL'
         file_info.append((title,author,year,venue,paper_id,references,abstract))
