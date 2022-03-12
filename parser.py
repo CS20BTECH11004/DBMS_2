@@ -8,7 +8,7 @@ paper_count = int(file.readline())
 def get_paper_info():
     global file 
     file_info =[]
-    for i in range(60):
+    for i in range(paper_count):
         title = ""
         author= []
         year = ""
@@ -22,7 +22,25 @@ def get_paper_info():
             if file_inp[0:2] == '#*':
                 title = file_inp[2:].replace("'","''")
             elif file_inp[0:2] == '#@':
-                author = file_inp[2:].replace("'","''").split(',')
+                author_raw = file_inp[2:].replace("'","''").split(',')
+                author_raw=[ele for ele in author_raw if len(ele)>0]
+                author_raw = list(dict.fromkeys(author_raw))
+                for cur_author in author_raw:
+                    lastname = ""
+                    middlename = ""
+                    fname=""
+                    if len(cur_author.split(' '))==0 :
+                        continue
+                    if len(cur_author.split(' '))==1 :
+                        fname= cur_author.split(' ')[0]
+                    elif len(cur_author.split(' '))==2:
+                        fname= cur_author.split(' ')[0]
+                        lastname= cur_author.split(' ')[1]
+                    if(len(cur_author.split(' '))>2):
+                        middlename = cur_author.split(' ')[1]
+                        fname= cur_author.split(' ')[0]
+                        lastname= cur_author.split(' ')[-1]
+                    author.append((fname,middlename,lastname))
             elif file_inp[0:2] == '#t':
                 year = file_inp[2:]
             elif file_inp[0:2] == '#c':
@@ -35,10 +53,6 @@ def get_paper_info():
                 abstract = file_inp[2:].replace("'","''")
         
             file_inp = file.readline().strip()
-        
-        # for x in [title,author,year,venue,paper_id,references,abstract]:
-        #     if x=="" or x==[]:
-        #         x='NULL'
         if title == "":
             title = 'NULL'
         if year == "":
@@ -46,9 +60,17 @@ def get_paper_info():
         if venue == "":
             venue ='NULL'
         if paper_id == "":
-            paper_id = 'NULL'
+            continue
         if abstract == "":
             abstract = 'NULL'
         file_info.append((title,author,year,venue,paper_id,references,abstract))
-    
     return file_info
+
+# def main():
+#     file_info=get_paper_info()
+#     for a in file_info:
+#         for b in a:
+#             print(b)     
+
+# if __name__=="__main__":
+#     main()
